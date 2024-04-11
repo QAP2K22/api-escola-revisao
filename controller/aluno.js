@@ -47,34 +47,27 @@ const ControllerAluno = {
         try {
             const aluno_dados = req.body
 
-            if (aluno_dados.nome == '' || aluno_dados.nome == null) {
-                res.status(403).json({ error: "[BACKEND STATUS]: Dado nome está incorreto." })
+            if (!aluno_dados.nome) {
+                return res.status(403).json({ error: "[BACKEND STATUS]: Dado nome está incorreto." })
             }
 
-            if (aluno_dados.turma == '' || aluno_dados.turma == null) {
-                res.status(403).json({ error: "[BACKEND STATUS]: Dado turma está incorreto." })
-                return;
-            } else if (turmas[aluno_dados.turma.toUpperCase()] == null) {
-                res.status(403).json({ error: "[BACKEND STATUS]: Turma não existe." })
-                return;
+            if (!aluno_dados.turma || !turmas[aluno_dados.turma.toUpperCase()]) {
+                return res.status(403).json({ error: "[BACKEND STATUS]: Dado turma está incorreto." })
             }
 
-            if (typeof (aluno_dados.notas) == Object) {
-                res.status(403).json({ error: "[BACKEND STATUS]: Você precisa enviar uma array" })
-                return;
+            if (!Array.isArray(aluno_dados.notas)) {
+                return res.status(403).json({ error: "[BACKEND STATUS]: Você precisa enviar uma array" })
             } else if (aluno_dados.notas.length < 4) {
-                res.status(403).json({ error: "[BACKEND STATUS]: Você precisa enviar uma array com 4 números" })
-                return;
+                return res.status(403).json({ error: "[BACKEND STATUS]: Você precisa enviar uma array com 4 números" })
             } else if (!aluno_dados.notas.every((value) => value >= 0 && value <= 10)) {
-                res.status(403).json({ error: "[BACKEND STATUS]: As notas precisão ser entre 0 e 10." })
-                return
+                return res.status(403).json({ error: "[BACKEND STATUS]: As notas precisão ser entre 0 e 10." })
             }
 
-            let somaNotas = 0
 
-            aluno_dados.notas.every((value) => somaNotas += value)
+            const somaNotas = aluno_dados.notas.reduce((accumulator, value) => accumulator + value);
 
             const mediaFinal = somaNotas / aluno_dados.notas.length
+
             aluno_dados.mediaFinal = mediaFinal
 
             res.json(await aluno.create(aluno_dados))
